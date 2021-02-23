@@ -1,19 +1,8 @@
+import moment from 'moment'
 import Highcharts from 'highcharts'
 import React, { useEffect } from 'react'
 import { dataFormat } from '../utils/utils'
-import Highcharts3D from 'highcharts/highcharts-3d'
-import { Card, Row, Col, Space, Statistic, Table } from 'antd'
-
-Highcharts3D(Highcharts)
-
-const columns = [
-    { title: '问题类别', dataIndex: 'issueType', width: '6%', ellipsis: true },
-    { title: '关键字', dataIndex: 'keyword', width: '6%', ellipsis: true },
-    { title: '概要', dataIndex: 'summary', ellipsis: true },
-    { title: '创建日期', dataIndex: 'created', width: '10%', ellipsis: true },
-    { title: '报告人', dataIndex: 'reporter', width: '6%', ellipsis: true },
-    { title: '经办人', dataIndex: 'assignee', width: '6%', ellipsis: true },
-]
+import { Card, Row, Col, Space, Table, DatePicker } from 'antd'
 
 export default props => {
 
@@ -25,8 +14,33 @@ export default props => {
         issueType: item.fields?.issuetype.name ?? '无',
         assignee: item.fields?.assignee?.displayName ?? '无',
         reporter: item.fields?.reporter?.displayName ?? '无',
-        created: new Date(item.fields?.created).toLocaleString() ?? '-',
+        created: moment(item.fields?.created).format('YYYY-MM-DD') ?? '-',
     }))
+
+    const columns = [
+        {
+            title: '问题类别', dataIndex: 'issueType', width: '10%', ellipsis: true,
+            filters: Array.from(new Set(dataSource.flatMap(item => item.issueType))).flatMap(item => ({ text: item, value: item })),
+            onFilter: (value, record) => record.issueType.indexOf(value) === 0
+        },
+        { title: '关键字', dataIndex: 'keyword', width: '10%', ellipsis: true },
+        { title: '概要', dataIndex: 'summary', ellipsis: true },
+        {
+            title: '创建日期', dataIndex: 'created', width: '10%', ellipsis: true,
+            filters: Array.from(new Set(dataSource.flatMap(item => item.created.slice(0, 7)))).flatMap(item => ({ text: item, value: item })),
+            onFilter: (value, record) => record.created.indexOf(value) === 0
+        },
+        { title: '报告人', dataIndex: 'reporter', width: '10%', ellipsis: true },
+        {
+            title: '经办人', dataIndex: 'assignee', width: '10%', ellipsis: true,
+            filters: Array.from(new Set(dataSource.flatMap(item => item.assignee))).flatMap(item => ({ text: item, value: item })),
+            onFilter: (value, record) => record.assignee.indexOf(value) === 0
+        },
+    ]
+
+    const filterChart = (
+        <DatePicker.RangePicker picker='month' />
+    )
 
     useEffect(() => {
         Highcharts.chart('container', {
@@ -51,20 +65,20 @@ export default props => {
         <div style={{ marginTop: 64 }}>
             <Row gutter={[24, 24]}>
                 <Col span={18}>
-                    <Card title={`${project.name}问题统计`}>
-                        <Statistic title='问题总计' value={10} />
+                    <Card title={`${project.name}问题统计`} extra={filterChart}>
                         <div id='container' style={{ height: '30vh' }} />
                     </Card>
                 </Col>
                 <Col span={6}>
                     <Space direction='vertical' size={24} style={{ width: '100%' }}>
-                        <Card></Card>
-                        <Card></Card>
+                        <Card style={{ height: 'calc(20vh - 12px)' }}></Card>
+                        <Card style={{ height: 'calc(22vh - 12px)' }}></Card>
                     </Space>
                 </Col>
             </Row>
-            <Card style={{ marginTop: 24 }}>
-                <Table size='small' columns={columns} dataSource={dataSource} pagination={false} />
+            <Card title='问题详细' style={{ marginTop: 24 }}>
+                <Table size='small' columns={columns} dataSource={dataSource}
+                    pagination={{ showSizeChanger: true, showTotal: total => `共${total}条数据` }} />
             </Card>
         </div>
     )
