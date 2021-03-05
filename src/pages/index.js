@@ -8,7 +8,6 @@ export default props => {
 	const [projects, setProjects] = useState([])
 	const [loading, setLoading] = useState(true)
 
-
 	useEffect(() => {
 		const projectList = JSON.parse(window.sessionStorage.getItem('projects'))
 		if (projectList) {
@@ -34,7 +33,7 @@ export default props => {
 			{loading ? <Spin size='large' style={{ margin: 'auto', marginTop: '20vh' }} /> :
 				projects.map(item => (
 					<Col span={6} key={item.key}>
-						<Link to='detail' onClick={e => window.sessionStorage.setItem('project', JSON.stringify(item))}>
+						<Link to={encodeURI(`detail?key=${item.key}&name=${item.name}`)} >
 							<Card
 								hoverable
 								style={{ background: item.assignee.includes('chunhuizhang') ? 'aquamarine' : 'white' }}>
